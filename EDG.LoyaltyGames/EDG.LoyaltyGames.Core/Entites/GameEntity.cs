@@ -10,10 +10,10 @@ namespace EDG.LoyaltyGames.Core.Entites
     {
         public required string GameName { get; set; }
         public required string GameUrl { get; set; }
-        public Stream? Thumbnail { get; set; }
+        public string Thumbnail { get; set; }
         public required bool IsSocial { get; set; }
         public required bool IsDeleted { get; set; }
-        public Stream? GameMetaData { get; set; }
+        public string GameMetaData { get; set; }
         public int PlayersCount { get; set; }
         public string? GameUnits { get; set; }
         public int GameCategory { get; set; }

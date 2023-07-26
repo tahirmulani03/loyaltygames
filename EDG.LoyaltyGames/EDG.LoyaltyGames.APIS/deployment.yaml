@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: games-app-deployment
+  annotations:
+    kubernetes.io/change-cuase: "Initional deployment of the app"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: games-test-app
+  template:
+    metadata:
+      name: loyaltygamesk8s
+      labels:
+        env: prod
+        app: games-test-app
+        app.kubernetes.io/name: games-test-app
+    spec:      
+      containers:
+        - name: games-test-app
+          image: loyaltygameregistry.azurecr.io/edgloyaltygamesapis:latest
+          imagePullPolicy: Always        
+          ports:
+            - containerPort: 80
+              name: http-web-api
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 200m
+              memory: 200Mi
+          env:
+            - name: ASPNETCORE_URLS
+              value: http://+:80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: games-lb-service
+spec:
+  selector:
+    app.kubernetes.io/name: games-test-app
+  ports:
+    - name: games-test-app-port
+      protocol: TCP
+      port: 8080
+      targetPort: 80
+  type: LoadBalancer
+---
+# This is a SecretProviderClass example using system-assigned identity to access your key vault
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: azure-kvname-system-msi
+spec:
+  provider: azure
+  parameters:
+    usePodIdentity: "false"
+    useVMManagedIdentity: "true"    # Set to true for using managed identity
+    userAssignedIdentityID: ""      # If empty, then defaults to use the system assigned identity on the VM
+    keyvaultName: loyaltygamekvault
+    cloudName: "AzurePublicCloud"                   # [OPTIONAL for Azure] if not provided, the Azure environment defaults to AzurePublicCloud
+    objects:  |
+      array:
+        - |
+          objectName: dbconnectionstring
+          objectType: secret        # object types: secret, key, or cert
+          objectVersion: ""         # [OPTIONAL] object versions, default to latest if empty
+    tenantId: c160a942-c869-429f-8a96-f8c8296d57db          # The tenant ID of the key vault

@@ -2,6 +2,8 @@
 using EDG.LoyaltyGames.Core.Interfaces;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using MongoDB.Driver.Core.Configuration;
+using System.Security.Authentication;
 
 namespace EDG.LoyaltyGames.Infrastructure.Data
 {
@@ -25,8 +27,11 @@ namespace EDG.LoyaltyGames.Infrastructure.Data
                 throw new ArgumentNullException(nameof(mongoConnectionString));
                 }
 
-                MongoClient client = new MongoClient(mongoConnectionString);
-                IMongoDatabase mongoDatabase = client.GetDatabase(_databaseName);
+                MongoClientSettings settings = MongoClientSettings.FromUrl(new MongoUrl(mongoConnectionString));
+                settings.SslSettings = new SslSettings() { EnabledSslProtocols = SslProtocols.Tls12 };
+                var mongoClient = new MongoClient(settings);
+
+                IMongoDatabase mongoDatabase = mongoClient.GetDatabase(_databaseName);
 
                 return mongoDatabase;
             }
