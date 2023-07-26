@@ -20,7 +20,7 @@ namespace EDG.LoyaltyGames.Infrastructure.KeyVault
                 KeyVaultSecret keyVaultSecret = await _secretClient.GetSecretAsync(secretName);
                 return keyVaultSecret.Value;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
 
                 throw;

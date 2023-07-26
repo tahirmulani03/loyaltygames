@@ -40,7 +40,7 @@ namespace EDG.LoyaltyGames.Infrastructure.Repositories
             try
             {
                 var dbInstance = await _mongodbContext.GetDbInstance();
-                var gameList = dbInstance.GetCollection<GameEntity>(_gameCollection);
+                var gameList = dbInstance.GetCollection<GameEntity>(_gameCollection);                
                 var gameEntityList = await gameList.Find(new BsonDocument()).ToListAsync();
                 return gameEntityList;
             }
