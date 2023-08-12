@@ -1,0 +1,43 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: game-middleware
+  namespace: games
+spec:
+  rateLimit:
+    burst: 100
+    average: 50 # Number of requests allowed per period
+    period: 1s  # Time period in which the requests are allowed
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vote
+  namespace: games
+spec:
+  entryPoints:
+    - web
+    - traefik
+  routes:
+    - match: Host(`games.example.com`) && PathPrefix(`/`)
+      kind: Rule
+      services:
+        - name: games-loadbalancer-service
+          port: 80
+      middlewares:
+        - name: game-middleware
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vote
+  namespace: games
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "false"
+spec:
+  defaultBackend:
+    service:
+      name: games-loadbalancer-service
+      port:
+        number: 80

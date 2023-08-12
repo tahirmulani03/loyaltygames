@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Entites\SignalRHub\" />
     <Folder Include="Specifications\" />
   </ItemGroup>
 

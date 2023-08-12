@@ -1,45 +1,44 @@
-﻿using EDG.LoyaltyGames.Core.Entites;
+﻿using EDG.LoyaltyGames.Core.Entites.Settings;
 using EDG.LoyaltyGames.Core.Interfaces;
+using EDG.LoyaltyGames.Infrastructure.Repositories;
+using Microsoft.ApplicationInsights;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using MongoDB.Driver.Core.Configuration;
-using System.Security.Authentication;
 
 namespace EDG.LoyaltyGames.Infrastructure.Data
 {
     public class MongodbContext: IMongodbContext
     {
-        private readonly IKeyVaultManager _keyVaultManager;
         private readonly string? _databaseName;
-        private readonly string _dbSecretKey;
-        public MongodbContext(IOptions<MongoDbSettings> mongoDbSettings, IOptions<KeyVaultSettings> keyVaultSettings, IKeyVaultManager keyVaultManager)
-        {
-            _keyVaultManager = keyVaultManager ?? throw new ArgumentNullException(nameof(keyVaultManager));
-            _databaseName = mongoDbSettings.Value.DatabaseName;
-            _dbSecretKey = keyVaultSettings.Value.DbSecretKey;
+        private readonly IMongoClient _mongoClient;
+        private readonly ILogger<MongodbContext> _logger;
+        private readonly TelemetryClient _telemetryClient;
+        public MongodbContext(IOptions<MongoDbSettings> mongoDbSettings,ILogger<MongodbContext> logger, IMongoClient mongoClient, TelemetryClient telemetryClient)
+        {            
+            _databaseName = mongoDbSettings.Value.DatabaseName;            
+            _mongoClient = mongoClient ?? throw new ArgumentNullException(nameof(mongoClient));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
         }
 
-        public async Task<IMongoDatabase> GetDbInstance() {
+        public IMongoDatabase GetDatabase()
+        {
             try
             {
-                var mongoConnectionString = await _keyVaultManager.GetSecret(_dbSecretKey);
-                if (mongoConnectionString == null) { 
-                throw new ArgumentNullException(nameof(mongoConnectionString));
-                }
-
-                MongoClientSettings settings = MongoClientSettings.FromUrl(new MongoUrl(mongoConnectionString));
-                settings.SslSettings = new SslSettings() { EnabledSslProtocols = SslProtocols.Tls12 };
-                var mongoClient = new MongoClient(settings);
-
-                IMongoDatabase mongoDatabase = mongoClient.GetDatabase(_databaseName);
+                _logger.LogInformation("Create database.");
+                _telemetryClient.TrackTrace($"{nameof(MongodbContext)} : Create database.");
+                IMongoDatabase mongoDatabase = _mongoClient.GetDatabase(_databaseName);
 
                 return mongoDatabase;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex.Message, ex);
+                _telemetryClient.TrackException(ex);
                 throw;
             }
-            
         }
+
     }
 }

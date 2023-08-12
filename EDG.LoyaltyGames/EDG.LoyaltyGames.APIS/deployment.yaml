@@ -2,10 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: games-app-deployment
+  namespace: nginx-ingress
   annotations:
     kubernetes.io/change-cuase: "Initional deployment of the app"
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: games-test-app
@@ -19,7 +20,7 @@ spec:
     spec:      
       containers:
         - name: games-test-app
-          image: loyaltygameregistry.azurecr.io/edgloyaltygamesapis:latest
+          image: loyaltygameregistry.azurecr.io/edgloyaltygamesapis:280723
           imagePullPolicy: Always        
           ports:
             - containerPort: 80
@@ -39,6 +40,42 @@ apiVersion: v1
 kind: Service
 metadata:
   name: games-lb-service
+  namespace: nginx-ingress
+spec:
+  selector:
+    app.kubernetes.io/name: games-test-app
+  ports:
+    - name: games-test-app-port
+      protocol: TCP
+      port: 8080
+      targetPort: 80
+  type: ClusterIP
+---
+# Create ingress controller
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: game-ingress
+  name: game-ingress
+  namespace: nginx-ingress
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /games
+            pathType: Prefix
+            backend:
+              service:
+                name: games-lb-service
+                port: 
+                  number: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: games-loadbalancer-service
+  namespace: nginx-ingress
 spec:
   selector:
     app.kubernetes.io/name: games-test-app
@@ -48,24 +85,3 @@ spec:
       port: 8080
       targetPort: 80
   type: LoadBalancer
----
-# This is a SecretProviderClass example using system-assigned identity to access your key vault
-apiVersion: secrets-store.csi.x-k8s.io/v1
-kind: SecretProviderClass
-metadata:
-  name: azure-kvname-system-msi
-spec:
-  provider: azure
-  parameters:
-    usePodIdentity: "false"
-    useVMManagedIdentity: "true"    # Set to true for using managed identity
-    userAssignedIdentityID: ""      # If empty, then defaults to use the system assigned identity on the VM
-    keyvaultName: loyaltygamekvault
-    cloudName: "AzurePublicCloud"                   # [OPTIONAL for Azure] if not provided, the Azure environment defaults to AzurePublicCloud
-    objects:  |
-      array:
-        - |
-          objectName: dbconnectionstring
-          objectType: secret        # object types: secret, key, or cert
-          objectVersion: ""         # [OPTIONAL] object versions, default to latest if empty
-    tenantId: c160a942-c869-429f-8a96-f8c8296d57db          # The tenant ID of the key vault
