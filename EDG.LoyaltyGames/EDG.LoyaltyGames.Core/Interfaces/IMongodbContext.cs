@@ -4,6 +4,6 @@ namespace EDG.LoyaltyGames.Core.Interfaces
 {
     public interface IMongodbContext
     {
-        Task<IMongoDatabase> GetDbInstance();
+        IMongoDatabase GetDatabase();
     }
 }

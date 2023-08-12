@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vote
+  namespace: nginx-ingress  
+spec:
+  rules:
+  - host: vote.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Exact
+        backend:
+          service:
+            name: games-loadbalancer-service
+            port:
+              number: 80

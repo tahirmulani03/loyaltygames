@@ -7,13 +7,24 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Entites\" />
-    <Folder Include="NewFolder\" />
-    <Folder Include="ViewModel\" />
+    <Compile Remove="Entites\**" />
+    <Compile Remove="NewFolder\**" />
+    <Compile Remove="ViewModel\**" />
+    <EmbeddedResource Remove="Entites\**" />
+    <EmbeddedResource Remove="NewFolder\**" />
+    <EmbeddedResource Remove="ViewModel\**" />
+    <None Remove="Entites\**" />
+    <None Remove="NewFolder\**" />
+    <None Remove="ViewModel\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\EDG.LoyaltyGames.Core\EDG.LoyaltyGames.Core.csproj" />
+    <ProjectReference Include="..\EDG.LoyaltyGames.Infrastructure\EDG.LoyaltyGames.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

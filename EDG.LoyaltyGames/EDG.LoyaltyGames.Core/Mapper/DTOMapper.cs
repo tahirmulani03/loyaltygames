@@ -1,5 +1,5 @@
-﻿using EDG.LoyaltyGames.Core.Entites;
-using AutoMapper;
+﻿using AutoMapper;
+using EDG.LoyaltyGames.Core.Entites.Games;
 
 namespace EDG.LoyaltyGames.Core.Mapper
 {
