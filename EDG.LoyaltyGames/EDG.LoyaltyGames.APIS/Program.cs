@@ -8,6 +8,7 @@ using EDG.LoyaltyGames.Infrastructure.AppInsights;
 using EDG.LoyaltyGames.Infrastructure.Extension;
 using EDG.LoyaltyGames.Infrastructure.SignalR;
 using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.Azure.SignalR;
 using Microsoft.Extensions.Azure;
 using MongoDB.Driver;
 using StackExchange.Redis;
@@ -65,7 +66,11 @@ builder.Services.AddAzureClients(azureBuilder =>
 
 builder.Services.AddSignalR().AddAzureSignalR(option =>
 {
-    option.ConnectionString = signalRConnectionString;
+    option.Endpoints = new ServiceEndpoint[] {
+    new ServiceEndpoint(signalRConnectionString,EndpointType.Primary),
+    new ServiceEndpoint(signalRConnectionString,EndpointType.Secondary)
+};
+    //option.ConnectionString = signalRConnectionString;
 });
 
 
