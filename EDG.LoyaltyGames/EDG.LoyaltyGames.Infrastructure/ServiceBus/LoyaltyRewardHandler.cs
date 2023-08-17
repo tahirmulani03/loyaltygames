@@ -12,25 +12,22 @@ namespace EDG.LoyaltyGames.Infrastructure.ServiceBus
     {
         private readonly ServiceBusClient _serviceBusClient;
         private readonly ILogger<LoyaltyRewardHandler> _logger;
-        private readonly string _topicName;
-        private readonly string _subscriptionName;
-        private readonly int _maxConcurrentCalls;
+        private readonly ServiceBusSetting _serviceBusSetting;
+
         public LoyaltyRewardHandler(ILogger<LoyaltyRewardHandler> logger, ServiceBusClient serviceBusClient, IOptions<ServiceBusSetting> options)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serviceBusClient = serviceBusClient ?? throw new ArgumentNullException(nameof(_serviceBusClient));
-            _topicName = options.Value.RewardTopicName;
-            _subscriptionName = options.Value.RewardSubscription;
-            _maxConcurrentCalls = options.Value.MaxConcurrentCalls;
+            _serviceBusSetting = options.Value;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var options = new ServiceBusProcessorOptions
             {
                 AutoCompleteMessages = false,
-                MaxConcurrentCalls = _maxConcurrentCalls
+                MaxConcurrentCalls = _serviceBusSetting.MaxConcurrentCalls
             };
-            var processor = _serviceBusClient.CreateProcessor(_topicName, _subscriptionName, options);
+            var processor = _serviceBusClient.CreateProcessor(_serviceBusSetting.RewardTopicName, _serviceBusSetting.RewardSubscription, options);
             try
             {
                 processor.ProcessMessageAsync += MessageHandler;
@@ -51,7 +48,7 @@ namespace EDG.LoyaltyGames.Infrastructure.ServiceBus
 
         private async Task MessageHandler(ProcessMessageEventArgs args)
         {
-            _logger.LogInformation($"{nameof(LoyaltyRewardHandler)} : Getting Messages from Topic: {_topicName} and Subscription:{_subscriptionName}.");
+            _logger.LogInformation($"{nameof(LoyaltyRewardHandler)} : Getting Messages from Topic: {_serviceBusSetting.RewardTopicName} and Subscription:{_serviceBusSetting.RewardSubscription}.");
             var messageBody = Encoding.UTF8.GetString(args.Message.Body);
             var loyaltyReward = JsonConvert.DeserializeObject<LoyaltyRewardsModelV1>(messageBody);
 

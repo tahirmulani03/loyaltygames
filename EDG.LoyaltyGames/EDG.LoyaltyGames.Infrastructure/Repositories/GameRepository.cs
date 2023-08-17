@@ -16,9 +16,8 @@ namespace EDG.LoyaltyGames.Infrastructure.Repositories
     {
         private readonly ILogger<GameRepository> _logger;
         private readonly IMongodbContext _mongodbContext;
-        private readonly string _gameCollection;
-        private readonly string _scoreCollection;
         private readonly TelemetryClient _telemetryClient;
+        private readonly MongoDbSettings _mongoDbSettings;
 
         //Tobe removed once done with Demo
         private readonly IGameServiceBusClient _gameServiceBusClient;
@@ -27,8 +26,7 @@ namespace EDG.LoyaltyGames.Infrastructure.Repositories
             IGameServiceBusClient gameServiceBusClient, IReceiveServiceBusClient receiveServiceBusClient, TelemetryClient telemetryClient)
         {
             _mongodbContext = mongodbContext ?? throw new ArgumentNullException(nameof(mongodbContext));
-            _gameCollection = mongoDbSettings.Value.CollectionName;
-            _scoreCollection = mongoDbSettings.Value.ScoreCollectionName;
+            _mongoDbSettings = mongoDbSettings.Value;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
 
@@ -52,7 +50,7 @@ namespace EDG.LoyaltyGames.Infrastructure.Repositories
                 _telemetryClient.TrackDependency("Mongo Database", "Mongo Database Open", gameEntity.GameName, DateTimeOffset.Now, TimeSpan.FromSeconds(1), true);
 
                 var dbInstance = _mongodbContext.GetDatabase();
-                var gameList = dbInstance.GetCollection<GameRequest>(_gameCollection);
+                var gameList = dbInstance.GetCollection<GameRequest>(_mongoDbSettings.CollectionName);
                 await gameList.InsertOneAsync(gameEntity);                
             }
             catch (Exception ex)
@@ -75,7 +73,7 @@ namespace EDG.LoyaltyGames.Infrastructure.Repositories
                 _logger.LogInformation($"{nameof(GetAllAsync)}");
 
                 var dbInstance = _mongodbContext.GetDatabase();
-                var gameList = dbInstance.GetCollection<GameEntity>(_gameCollection);                
+                var gameList = dbInstance.GetCollection<GameEntity>(_mongoDbSettings.CollectionName);                
                 var gameEntityList = await gameList.Find(new BsonDocument()).ToListAsync();
                 return gameEntityList;
             }
@@ -105,7 +103,7 @@ namespace EDG.LoyaltyGames.Infrastructure.Repositories
 
                 var dbInstance = _mongodbContext.GetDatabase();
                 
-                var gameList = dbInstance.GetCollection<GameScoreRequest>(_scoreCollection);
+                var gameList = dbInstance.GetCollection<GameScoreRequest>(_mongoDbSettings.ScoreCollectionName);
                 await gameList.InsertOneAsync(gameScoreRequest);
 
 

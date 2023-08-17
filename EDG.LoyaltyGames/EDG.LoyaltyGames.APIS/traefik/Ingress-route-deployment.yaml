@@ -17,7 +17,6 @@ metadata:
 spec:
   entryPoints:
     - web
-    - traefik
   routes:
     - match: Host(`games.example.com`) && PathPrefix(`/`)
       kind: Rule
@@ -26,18 +25,3 @@ spec:
           port: 80
       middlewares:
         - name: game-middleware
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: vote
-  namespace: games
-  annotations:
-    kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/router.tls: "false"
-spec:
-  defaultBackend:
-    service:
-      name: games-loadbalancer-service
-      port:
-        number: 80

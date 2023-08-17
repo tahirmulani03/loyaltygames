@@ -11,12 +11,12 @@ namespace EDG.LoyaltyGames.Infrastructure.ServiceBus
     {
         private readonly ServiceBusClient _serviceBusClient;
         private readonly ILogger<GameServiceBusClient> _logger;       
-        private readonly int MessageTTLDays;
+        private readonly ServiceBusSetting _serviceBusSetting;
         public GameServiceBusClient(ILogger<GameServiceBusClient> logger, ServiceBusClient serviceBusClient, IOptions<ServiceBusSetting> options)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _serviceBusClient = serviceBusClient ?? throw new ArgumentNullException(nameof(_serviceBusClient));            
-            MessageTTLDays = options.Value.MessageTTLDays;
+            _serviceBusClient = serviceBusClient ?? throw new ArgumentNullException(nameof(_serviceBusClient));
+            _serviceBusSetting = options.Value;
 
         }
         public async Task SendAsync<T>(T queueMessage, string queueName)
@@ -27,7 +27,7 @@ namespace EDG.LoyaltyGames.Infrastructure.ServiceBus
                 var messageBody = JsonSerializer.Serialize(queueMessage);
                 var sbMessage = new ServiceBusMessage(messageBody);
 
-                sbMessage.TimeToLive = TimeSpan.FromDays(MessageTTLDays);
+                sbMessage.TimeToLive = TimeSpan.FromDays(_serviceBusSetting.MessageTTLDays);
                 sbMessage.MessageId = Guid.NewGuid().ToString();
 
                 if (messageSender != null)
