@@ -17,7 +17,7 @@ namespace EDG.LoyaltyGames.Infrastructure.ServiceBus
         private readonly ServiceBusClient _serviceBusClient;
         private readonly ILogger<ReceiveServiceBusClient> _logger;        
         
-        public ReceiveServiceBusClient(ILogger<ReceiveServiceBusClient> logger, ServiceBusClient serviceBusClient, IOptions<ServiceBusSetting> options)
+        public ReceiveServiceBusClient(ILogger<ReceiveServiceBusClient> logger, ServiceBusClient serviceBusClient)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serviceBusClient = serviceBusClient ?? throw new ArgumentNullException(nameof(_serviceBusClient));                       
